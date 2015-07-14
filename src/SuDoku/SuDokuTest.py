@@ -77,7 +77,20 @@ class SuDoku:
 				sudo_status[uniq_inds[ii][0]][i] = uniqs[0][ii]
 				
 			
+	
+	# function to apply single possibility square constraints
+	def single_poss_sq(self, sudo_status, sudo_nums):
+		for i in range(3):
+			for j in range(3):
+				uniqs = []
+				uniq_inds = []
+				sudo_status_list = [j2 for j1 in sudo_status[i*3:(i+1)*3] for j2 in j1[j*3:(j+1)*3]]
+				self.get_uniq(sudo_status_list, sudo_nums, uniqs, uniq_inds)
+				for ii in range(len(uniqs[0])):
+					sudo_status[i*3 + int((uniq_inds[ii][0])/3)][j*3 + int((uniq_inds[ii][0])%3)] = uniqs[0][ii]
 			
+	
+	
 	# function to apply consolidated constraints
 	def apply_cnstr(self, sudo_status, sudo_nums, sudo_cnstr):
 
@@ -104,6 +117,7 @@ class SuDoku:
 		
 		self.single_poss_h(sudo_status, sudo_nums)
 		self.single_poss_v(sudo_status, sudo_nums)
+		self.single_poss_sq(sudo_status, sudo_nums)
 		return 1
 
 
