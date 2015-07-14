@@ -17,8 +17,8 @@ class SuDoku:
 		if c == 'h':
 			return [[j2 if j2 != 0 else sudo_nums for j2 in j1] for j1 in sudo_status]
 		elif c == 'v':
-			return [[j2 if j2 != 0 else sudo_nums for j2 in j1] for j1 in np.array(np.array(sudo_status).transpose()).tolist()]
-
+			return [[j2 if j2 != 0 else sudo_nums for j2 in j1] for j1 in zip(*sudo_status)]
+#np.array(np.array(sudo_status).transpose()).tolist()
 
 
 	# function to get vertical and horizontal constraints
@@ -47,32 +47,43 @@ class SuDoku:
 
 		self.h_v_cnstr(sudo_status, sudo_nums, sudo_cnstr)
 		self.sq_cnstr(sudo_status, sudo_nums, sudo_cnstr)
-		sudo_status = self.replace_zeros('h', sudo_status, sudo_nums)
-		multi_inds = [[i2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in sudo_status]
-
+		sudo_status_h = self.replace_zeros('h', sudo_status, sudo_nums)
+		multi_inds = [[i2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in sudo_status_h]
+		
+		if np.array(multi_inds).size == 0:
+			return 0
+		
 		for i1, j1 in enumerate(multi_inds):
 			h_list = sudo_cnstr['horz'][i1]
 			for i2, j2 in enumerate(j1):
 				v_list = sudo_cnstr['vert'][j2]
 				sq_list = sudo_cnstr['square'][int(i1/3)*3+int(j2/3)]
-				all_poss = sorted(list(set(sudo_status[i1][j2]) & set(h_list) & set(v_list) & set(sq_list)))
+				all_poss = sorted(list(set(sudo_status_h[i1][j2]) & set(h_list) & set(v_list) & set(sq_list)))
 
 				if len(all_poss) == 1:
 					sudo_status[i1][j2] = all_poss[0]
 				else:
 					sudo_status[i1][j2] = all_poss
-		# print to check
-		print sudo_status
+		return 1
 
 
 sudo_file = open('SuEg1.txt', 'r+')
 sudo_list = []
-sudo_cnstr = {}
+
 sudo_size = 9
 sudo_nums = [n+1 for n in range(sudo_size)]
 sudo_class = SuDoku()
 
 sudo_class.make_sudo_list(sudo_file, sudo_list)
 sudo_status = sudo_list
-sudo_class.apply_cnstr(sudo_status, sudo_nums, sudo_cnstr)
+result = 1
+count = 1
+while (result == 1) & (count<100):
+	sudo_cnstr = {}
+	result = sudo_class.apply_cnstr(sudo_status, sudo_nums, sudo_cnstr)
+	count = count + 1
+
+print count
+for line in sudo_status:
+	print line
 
