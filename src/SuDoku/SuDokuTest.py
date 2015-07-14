@@ -44,31 +44,37 @@ class SuDoku:
 
 
 	
+	# function to get unique values and indices in an irregular list of lists
+	def get_uniq(self, sudo_status_list, sudo_nums, uniqs, uniq_inds):
+		singles_flat  = [j1 for j1 in sudo_status_list if j1 in sudo_nums]
+		irr_list = [[j1] if j1 in sudo_nums else j1 for j1 in sudo_status_list]
+		flat_list = [j1 for j2 in irr_list for j1 in j2]
+		uniqs.append(list(set([j1 for j1 in flat_list if flat_list.count(j1) == 1]) - set(singles_flat)))
+
+		for i in range(len(uniqs[0])):
+			uniq_inds.append([i1 for i1, j1 in enumerate(irr_list) if uniqs[0][i] in j1])
+	
+	
+		
 	# function to apply single possibility horizontal constraints
 	def single_poss_h(self, sudo_status, sudo_nums):
-		multi_inds = [[i2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in sudo_status]
-		multi_vals = [[j2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in sudo_status]
 		for i in range(len(sudo_nums)):
-			single_vals = [j1 for j1 in sudo_status[i] if j1 in sudo_nums]
-			flat_horz = single_vals + [j1 for j2 in multi_vals[i] for j1 in j2]
-			uniq = list(set([x for x in flat_horz if flat_horz.count(x) == 1]) - set(single_vals))	
-			for ii in range(len(uniq)):
-				uniq_index = [(i1, j1.index(uniq[ii])) for i1, j1 in enumerate(multi_vals[i]) if uniq[ii] in j1]
-				sudo_status[i][multi_inds[i][uniq_index[0][0]]] = uniq[ii]
+			uniqs = []
+			uniq_inds = []
+			self.get_uniq(sudo_status[i], sudo_nums, uniqs, uniq_inds)
+			for ii in range(len(uniqs[0])):
+				sudo_status[i][uniq_inds[ii][0]] = uniqs[0][ii]
+
 				
-	
 	
 	# function to apply single possibility vertical constraints
 	def single_poss_v(self, sudo_status, sudo_nums):
-		multi_inds = [[i2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in zip(*sudo_status)]
-		multi_vals = [[j2 for j2 in j1 if j2 not in sudo_nums] for j1 in zip(*sudo_status)]
 		for i in range(len(sudo_nums)):
-			single_vals = [j1 for j1 in zip(*sudo_status)[i] if j1 in sudo_nums]
-			flat_vert = [j1 for j1 in zip(*sudo_status)[i] if j1 in sudo_nums] + [j1 for j2 in multi_vals[i] for j1 in j2]
-			uniq = list(set([x for x in flat_vert if flat_vert.count(x) == 1]) - set(single_vals))	
-			for ii in range(len(uniq)):
-				uniq_index = [(i1, j1.index(uniq[ii])) for i1, j1 in enumerate(multi_vals[i]) if uniq[ii] in j1]
-				sudo_status[multi_inds[i][uniq_index[0][0]]][i] = uniq[ii]
+			uniqs = []
+			uniq_inds = []
+			self.get_uniq(zip(*sudo_status)[i], sudo_nums, uniqs, uniq_inds)
+			for ii in range(len(uniqs[0])):
+				sudo_status[uniq_inds[ii][0]][i] = uniqs[0][ii]
 				
 			
 			
