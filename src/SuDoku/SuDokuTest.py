@@ -12,13 +12,13 @@ class SuDoku:
 
 
 
-	# function to replace any zeros by possibilities [0 to 9] , horizontal or vertical
+	# function to replace any zeros by possibilities [1 to 9] , horizontal or vertical
 	def replace_zeros(self, c, sudo_status, sudo_nums):
 		if c == 'h':
 			return [[j2 if j2 != 0 else sudo_nums for j2 in j1] for j1 in sudo_status]
 		elif c == 'v':
 			return [[j2 if j2 != 0 else sudo_nums for j2 in j1] for j1 in zip(*sudo_status)]
-#np.array(np.array(sudo_status).transpose()).tolist()
+
 
 
 	# function to get vertical and horizontal constraints
@@ -29,7 +29,9 @@ class SuDoku:
 		sudo_cnstr['horz'] = [sorted(list(set(sudo_nums) - set([j2 for j2 in j1 if j2 in sudo_nums]))) for j1 in sudo_status_h]
 		sudo_cnstr['vert'] = [sorted(list(set(sudo_nums) - set([j2 for j2 in j1 if j2 in sudo_nums]))) for j1 in sudo_status_v]
 
-
+		
+		
+		
 
 	# function to get square constraints
 	def sq_cnstr(self, sudo_status, sudo_nums, sudo_cnstr):
@@ -41,7 +43,35 @@ class SuDoku:
 		sudo_cnstr['square'] = sudo_cnstr_sq
 
 
-
+	
+	# function to apply single possibility horizontal constraints
+	def single_poss_h(self, sudo_status, sudo_nums):
+		multi_inds = [[i2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in sudo_status]
+		multi_vals = [[j2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in sudo_status]
+		for i in range(len(sudo_nums)):
+			single_vals = [j1 for j1 in sudo_status[i] if j1 in sudo_nums]
+			flat_horz = single_vals + [j1 for j2 in multi_vals[i] for j1 in j2]
+			uniq = list(set([x for x in flat_horz if flat_horz.count(x) == 1]) - set(single_vals))	
+			for ii in range(len(uniq)):
+				uniq_index = [(i1, j1.index(uniq[ii])) for i1, j1 in enumerate(multi_vals[i]) if uniq[ii] in j1]
+				sudo_status[i][multi_inds[i][uniq_index[0][0]]] = uniq[ii]
+				
+	
+	
+	# function to apply single possibility vertical constraints
+	def single_poss_v(self, sudo_status, sudo_nums):
+		multi_inds = [[i2 for i2, j2 in enumerate(j1) if j2 not in sudo_nums] for j1 in zip(*sudo_status)]
+		multi_vals = [[j2 for j2 in j1 if j2 not in sudo_nums] for j1 in zip(*sudo_status)]
+		for i in range(len(sudo_nums)):
+			single_vals = [j1 for j1 in zip(*sudo_status)[i] if j1 in sudo_nums]
+			flat_vert = [j1 for j1 in zip(*sudo_status)[i] if j1 in sudo_nums] + [j1 for j2 in multi_vals[i] for j1 in j2]
+			uniq = list(set([x for x in flat_vert if flat_vert.count(x) == 1]) - set(single_vals))	
+			for ii in range(len(uniq)):
+				uniq_index = [(i1, j1.index(uniq[ii])) for i1, j1 in enumerate(multi_vals[i]) if uniq[ii] in j1]
+				sudo_status[multi_inds[i][uniq_index[0][0]]][i] = uniq[ii]
+				
+			
+			
 	# function to apply consolidated constraints
 	def apply_cnstr(self, sudo_status, sudo_nums, sudo_cnstr):
 
@@ -63,8 +93,14 @@ class SuDoku:
 				if len(all_poss) == 1:
 					sudo_status[i1][j2] = all_poss[0]
 				else:
+		
 					sudo_status[i1][j2] = all_poss
+		
+		self.single_poss_h(sudo_status, sudo_nums)
+		self.single_poss_v(sudo_status, sudo_nums)
 		return 1
+
+
 
 
 sudo_file = open('SuEg1.txt', 'r+')
@@ -78,7 +114,7 @@ sudo_class.make_sudo_list(sudo_file, sudo_list)
 sudo_status = sudo_list
 result = 1
 count = 1
-while (result == 1) & (count<100):
+while (result == 1) & (count<25):
 	sudo_cnstr = {}
 	result = sudo_class.apply_cnstr(sudo_status, sudo_nums, sudo_cnstr)
 	count = count + 1
